@@ -58,14 +58,13 @@ def prefLogIn() {
 			input("password", "password", title: "Password", description: "MyQ password")
 		}
 		section("Gateway Brand"){
-			input(name: "brand_t", title: "Gateway Brand", type: "enum",  , options: [[1:"Liftmaster"],[2:"Chamberlain"],[3:"Craftsman"]] )
+			input(name: "brand_t", title: "Gateway Brand", type: "enum", options: [[1:"Liftmaster"],[2:"Chamberlain"],[3:"Craftsman"]] )
 		}
         settings.brand = getBrandName(settings.brand_t) 
 	}
 }
 
 def prefListDevices() {
-	getVersionInfo(0, 0);
     getSelectedDevices("lights")
     if (forceLogin()) {
 		def doorList = getDoorList()
@@ -259,13 +258,9 @@ def installed() {
 
 def updated() { 
 	ifDebug("Updated...")
-    if (state.previousVersion != state.thisSmartAppVersion){    	
-    	getVersionInfo(state.previousVersion, state.thisSmartAppVersion);
-    }    
 }
 
 def uninstalled() {
-	getVersionInfo(state.previousVersion, 0);
 }	
 
 def initialize() {    
@@ -976,35 +971,6 @@ def sendCommand(child, attributeName, attributeValue) {
 	} 
 }
 
-
-
-def getVersionInfo(oldVersion, newVersion){	
-    def params = [
-        uri:  'http://www.fantasyaftermath.com/getMyQVersion/' + oldVersion + '/' + newVersion,
-        contentType: 'application/json'
-    ]
-    asynchttpGet('responseHandlerMethod', params)
-}
-
-def responseHandlerMethod(response, data) {
-    if (response.hasError()) {
-        log.error "response has error: $response.errorMessage"
-    } else {
-        def results = response.json
-        state.latestSmartAppVersion = results.SmartApp;
-        state.latestDoorVersion = results.DoorDevice;
-        state.latestDoorNoSensorVersion = results.DoorDeviceNoSensor;
-        state.latestLightVersion = results.LightDevice;
-    }
-    
-    ifDebug("previousVersion: " + state.previousVersion)
-    ifDebug("installedVersion: " + state.thisSmartAppVersion)
-    ifDebug("latestVersion: " + state.latestSmartAppVersion)
-    ifDebug("doorVersion: " + state.latestDoorVersion)
-    ifDebug("doorNoSensorVersion: " + state.latestDoorNoSensorVersion)
-    ifDebug("lightVersion: " + state.latestLightVersion)
-}
-
 def versionCheck(){
 	state.versionWarning = ""    
     state.thisDoorVersion = ""
@@ -1039,20 +1005,8 @@ def versionCheck(){
 		} catch (MissingPropertyException e)	{
 			ifDebug("API Error: $e")
 		}
-    }   
-    
-    if (state.thisSmartAppVersion != state.latestSmartAppVersion) {
-    	state.versionWarning = state.versionWarning + "Your SmartApp version (" + state.thisSmartAppVersion + ") is not the latest version (" + state.latestSmartAppVersion + ")\n\n"
-	}
-	if (usesDoorDev && state.thisDoorVersion != state.latestDoorVersion) {
-    	state.versionWarning = state.versionWarning + "Your MyQ Door device version (" + state.thisDoorVersion + ") is not the latest version (" + state.latestDoorVersion + ")\n\n"
     }
-	if (usesDoorNoSensorDev && state.thisDoorNoSensorVersion != state.latestDoorNoSensorVersion) {
-    	state.versionWarning = state.versionWarning + "Your MyQ Door (No-sensor) device version (" + state.thisDoorNoSensorVersion + ") is not the latest version (" + state.latestDoorNoSensorVersion + ")\n\n"
-    }
-    if (usesLightControllerDev && state.thisLightVersion != state.latestLightVersion) {
-    	state.versionWarning = state.versionWarning + "Your MyQ Light Controller device version (" + state.thisLightVersion + ") is not the latest version (" + state.latestLightVersion + ")\n\n"
-    }
+
     ifDebug(state.versionWarning)
 }
 
